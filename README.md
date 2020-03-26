@@ -1,2 +1,2 @@
-# das-boot-discord
-Das Boot discord bot
+# Das Boot Discord
+De Das Boot discord bot
