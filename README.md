@@ -1,6 +1,6 @@
 # Das Boot Discord
 De Das Boot discord bot
-
+```
                        @&*                                                      
                          @@@@(                                                  
                           @@@@@,                                                
@@ -20,3 +20,4 @@ De Das Boot discord bot
                '@@@@@@@@@@@@@@@@..                                              
              #@@@@@@@@@@.                                                       
                 '#%%(.                                                          
+```
