@@ -11,13 +11,14 @@ type Game struct {
 	gameType gametypes.GameType
 }
 
+/*
 func LoadGame(gameType string) (string, Game) {
 	init()
 	var newGames Game
 
 	return newGames
 }
-
+*/
 func IsGame(gameType string) bool {
 	switch gameType {
 	case "mexxen":

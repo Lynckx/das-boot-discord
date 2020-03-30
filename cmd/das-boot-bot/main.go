@@ -14,7 +14,7 @@ import (
 
 func main() {
 	fmt.Println("Starting discord go")
-	dg, err := discordgo.New("Bot " + "NjkyODA5ODkxMDkzNjc2MDcz.XoDfqQ.O9Xdpba82otqBOQoJJ2m-q3aAZ0")
+	dg, err := discordgo.New("Bot " + "NjkyODA5ODkxMDkzNjc2MDcz.XoJiVA.LrxddL9Vp8TfBgfucJMQ6jVN1gY")
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
 		return
@@ -23,7 +23,7 @@ func main() {
 	dasBot := dasbot.CreateBot()
 	ctx, cnl := context.WithCancel(context.Background())
 	defer cnl()
-	dasBot.Run(ctx)
+	go dasBot.Start(ctx)
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	dg.AddHandler(dasBot.DiscordHandler)
