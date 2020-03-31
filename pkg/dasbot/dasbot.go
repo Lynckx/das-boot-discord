@@ -13,6 +13,7 @@ import (
 
 type Bot struct {
 	discordMessageChannel chan message.Message
+	cmd                   commands.CommandHandler
 	wg                    *sync.WaitGroup
 }
 
@@ -20,6 +21,7 @@ func CreateBot() Bot {
 	var newBot Bot
 	newBot.discordMessageChannel = make(chan message.Message, 1)
 	newBot.wg = &sync.WaitGroup{}
+	newBot.cmd = commands.CreateCommandHandler()
 	return newBot
 }
 
@@ -40,7 +42,7 @@ func (b Bot) BotHandler(ctx context.Context) {
 			fmt.Printf("Got message from discordMessageChannel, %v\n", msg)
 			go func() {
 				if msg.HasBotPrefix() {
-					if err := commands.Emit(msg); err != nil {
+					if err := b.cmd.Emit(msg); err != nil {
 						fmt.Printf("Got an error %v\n", err)
 					}
 					fmt.Printf("recieved message: %v\n", msg.GetMessageContent())
@@ -61,7 +63,7 @@ func (b Bot) DiscordHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 //discordCommandHandler takes a string that has the "/db " prefix and calls the right command
 func (b Bot) initializeCommands() error {
-	commands.LoadStandartCommand()
+	b.cmd.LoadStandartCommand()
 	//initialize games
 	return nil
 }

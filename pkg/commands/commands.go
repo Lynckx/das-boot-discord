@@ -7,42 +7,46 @@ import (
 	"strings"
 )
 
+type CommandHandler struct {
+	Commands map[string]*Command
+}
+
 type commandFunction func(msg message.Message) error
 type Command struct {
 	f commandFunction
 }
 
-var (
-	Commands = make(map[string]*Command)
-)
-
-func On(id string, aliases []string, cmdFunc commandFunction) {
-	cmd := &Command{
-		f: cmdFunc,
-	}
-	Commands[strings.ToLower(id)] = cmd
-	for _, alias := range aliases {
-		Commands[strings.ToLower(alias)] = cmd
+func CreateCommandHandler() CommandHandler {
+	return CommandHandler{
+		Commands: make(map[string]*Command),
 	}
 }
 
-func Emit(msg message.Message) error {
+func (cmd *CommandHandler) On(id string, aliases []string, cmdFunc commandFunction) {
+	newCommand := &Command{
+		f: cmdFunc,
+	}
+	cmd.Commands[strings.ToLower(id)] = newCommand
+	for _, alias := range aliases {
+		cmd.Commands[strings.ToLower(alias)] = newCommand
+	}
+}
+
+func (cmd *CommandHandler) Emit(msg message.Message) error {
 	fmt.Println("Emit called")
-	cmd, ok := Commands[strings.ToLower(msg.GetFirstCommand())]
-	fmt.Printf("Command exsists: %v, recieved command: %v\n", ok, cmd)
+	command, ok := cmd.Commands[strings.ToLower(msg.GetFirstCommand())]
 	if !ok {
-		fmt.Println("returning")
 		return errors.New("Command not found")
 	}
-	return cmd.f(msg)
+	return command.f(msg)
 }
 
 func CreateCommandFunction(f func(msg message.Message) error) commandFunction {
 	return commandFunction(f)
 }
 
-func LoadStandartCommand() {
-	On("logo", []string{"DB", "Boot", "DasBoot", "das_boot"}, DasBoot)
+func (cmd CommandHandler) LoadStandartCommand() {
+	cmd.On("logo", []string{"DB", "Boot", "DasBoot", "das_boot"}, DasBoot)
 }
 
 // standart commands
