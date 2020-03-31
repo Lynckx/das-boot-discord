@@ -19,6 +19,13 @@ var (
 
 func init() {
 	flag.StringVar(&Token, "t", "", "Owner Account Token")
+
+	flag.Parse()
+
+	if Token == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
 }
 
 func main() {

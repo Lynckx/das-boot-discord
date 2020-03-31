@@ -6,15 +6,15 @@ import (
 	"lynckx/das-boot-discord/pkg/games/round"
 )
 
-var gameMap map[string]gametypes.GameType
-
 type GameType struct {
 	Name    string
 	Players []player.Player
 	round   round.Round
 }
 
-func init() {
+var gameMap map[string]GameType
+
+func GetGameTypes() {
 	gameMap = make(map[string]GameType)
 	gameMap[mexxen.GameName] = &mexxen.newGame()
 }

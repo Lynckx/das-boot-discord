@@ -2,6 +2,7 @@ package mexxen
 
 import (
 	"errors"
+	"lynckx/das-boot-discord/pkg/dasbot/commands"
 	"lynckx/das-boot-discord/pkg/games/dice"
 	"lynckx/das-boot-discord/pkg/games/player"
 	"lynckx/das-boot-discord/pkg/games/round"
@@ -23,6 +24,20 @@ type MexxenImpl struct {
 	Name    string
 	Players []player.Player
 	round   round.Round
+}
+
+func LoadCommand() commands.CommandLoader{
+	return commands.CommandLoader{
+		Id: "mexxen",
+		alias:[]string{"mex"},
+		CmdFunc: ,
+	}
+}
+
+func CreateCommand() commands.CommandFunction{
+	return func(cmd *commands.CommandHandler, msg *message.Message){
+
+	} error
 }
 
 func (m *MexxenImpl) newGame() {
