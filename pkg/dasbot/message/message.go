@@ -28,6 +28,7 @@ func (msg Message) GetCommandListAfterPrefix() []string {
 	return strings.Split(strings.Split(msg.m.Content, constants.BOT_PREFIX)[1], " ")
 }
 
+//Respond responds to the discord message
 func (msg Message) Respond(responses []string) error {
 	for _, resp := range responses {
 		if resp != "" {

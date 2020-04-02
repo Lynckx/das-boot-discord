@@ -2,8 +2,11 @@ package commands
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
+
+	"github.com/renstrom/shortuuid"
 
 	"lynckx/das-boot-discord/pkg/dasbot/message"
 )
@@ -12,10 +15,17 @@ type CommandHandler struct {
 	mu       *sync.RWMutex
 	Commands map[string]*Command
 	// msgCh is used to listen for additional user input after a command was
-	msgChs []chan *message.Message
+	msgChs map[string]chan *message.Message
 }
 
-type CommandFunction func(cmd *CommandHandler, msg *message.Message) error
+type Listener struct {
+	id string
+	Ch chan *message.Message
+}
+
+type CommandFunction func(cmd *CommandHandler, msg *message.Message, args Arguments) error
+
+type Arguments []interface{}
 
 type CommandLoader struct {
 	Id      string
@@ -33,32 +43,46 @@ func CreateCommandHandler() *CommandHandler {
 	}
 }
 
+func (cmd *CommandHandler) Broadcast(msg *message.Message) {
+	cmd.SendMessageToListeners(msg)
+	go func() {
+		if msg.HasBotPrefix() {
+			if err := cmd.Emit(strings.ToLower(msg.GetCommandListAfterPrefix()[0]), msg, Arguments{}); err != nil {
+				fmt.Printf("Got an error %v\n", err)
+			}
+			fmt.Printf("received message: %v From User: %+v\n", msg.GetMessageContent(), msg.GetAuthor())
+		}
+	}()
+}
+
 func (cmd *CommandHandler) SendMessageToListeners(msg *message.Message) {
 	for _, ch := range cmd.msgChs {
 		ch <- msg
 	}
 }
 
-func (cmd *CommandHandler) AddMessageListener() chan *message.Message {
+func (cmd *CommandHandler) AddMessageListener() Listener {
 	ch := make(chan *message.Message)
 	cmd.mu.Lock()
 	defer cmd.mu.Unlock()
-	cmd.msgChs = append(cmd.msgChs, ch)
-	return ch
+	id := shortuuid.New()
+	cmd.msgChs[id] = ch
+	return Listener{
+		id: id,
+		Ch: ch,
+	}
 }
 
-func (cmd *CommandHandler) RemoveMessageListener(ch chan *message.Message) {
+func (cmd *CommandHandler) RemoveMessageListener(l Listener) {
 	cmd.mu.Lock()
 	defer cmd.mu.Unlock()
-	cmd.msgChs = append(cmd.msgChs, ch)
-	for i, oldCh := range cmd.msgChs {
-		if oldCh == ch {
-			cmd.msgChs[i] = cmd.msgChs[len(cmd.msgChs)-1]
-			cmd.msgChs[len(cmd.msgChs)-1] = ch
-			cmd.msgChs = cmd.msgChs[:len(cmd.msgChs)-1]
+	for id, oldCh := range cmd.msgChs {
+		if id == l.id {
+			delete(cmd.msgChs, id)
+			close(oldCh)
+			break
 		}
 	}
-	close(ch)
 }
 
 func (cmd *CommandHandler) LoadCommandsFrom(newCommands []*CommandLoader) {
@@ -83,17 +107,17 @@ func (cmd *CommandHandler) On(id string, aliases []string, cmdFunc CommandFuncti
 	}
 }
 
-func (cmd *CommandHandler) Emit(msg *message.Message) error {
+func (cmd *CommandHandler) Emit(cmdId string, msg *message.Message, args Arguments) error {
 	cmd.mu.RLock()
-	command, ok := cmd.Commands[strings.ToLower(msg.GetCommandListAfterPrefix()[0])]
+	command, ok := cmd.Commands[cmdId]
 	cmd.mu.RUnlock()
 	if !ok {
 		return errors.New("Command not found")
 	}
-	return command.f(cmd, msg)
+	return command.f(cmd, msg, args)
 }
 
-func CreateCommandFunction(f func(cmd *CommandHandler, msg *message.Message) error) CommandFunction {
+func CreateCommandFunction(f func(cmd *CommandHandler, msg *message.Message, args Arguments) error) CommandFunction {
 	return CommandFunction(f)
 }
 

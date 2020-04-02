@@ -12,9 +12,9 @@ type GameType struct {
 	round   round.Round
 }
 
-var gameMap map[string]GameType
+type GameLibrary map[string]GameType
 
-func GetGameTypes() {
+func GetGameLibrary() GameLibrary {
 	gameMap = make(map[string]GameType)
-	gameMap[mexxen.GameName] = &mexxen.newGame()
+	gameMap[mexxen.GameName] = &mexxen.Impl()
 }
